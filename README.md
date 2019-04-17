@@ -413,4 +413,32 @@ I don't know what the difference is between the first reference to "Arduino Mega
 
 I've so far tested it with 2 example sketches using a PS3 controller (PS3USB.h) and an Xbox wireless controller (XBOXRCEV.h) and both work fine. It works with the Openstage PCB now as well, although more testing is required before i'm entirely happy that everything is fine.
 
+A couple other cases came up: https://www.sparkfun.com/products/9947#comment-4eaad854757b7fd351009aeb
+"The Mega has its SPI pins in a different place than the Uno.
+You may need to jumper:
+52->13      //maybe not
+50->12      //maybe not
+51->11      //maybe not
+53->10 to make the SPI connections, and then make sure 10-11-12-13 are inputs only in your sketch."
+
+"You really do need to jumper the RESET pin to 7."
+
+"Here is a part of MAX3421e_constants.c:
+#if defined(AVR_ATmega1280) || (AVR_ATmega2560)
+#define SCK_PIN 52
+#define MISO_PIN 50
+#define MOSI_PIN 51
+#define SS_PIN 53
+#endif
+#if defined(AVR_ATmega168) || defined(AVR_ATmega328P)
+#define SCK_PIN 13
+#define MISO_PIN 12
+#define MOSI_PIN 11
+#define SS_PIN 10
+#endif
+#define MAX_SS 53
+#define MAX_INT 9
+#define MAX_GPX 8
+#define MAX_RESET 7"
+
 Hope this helps.
