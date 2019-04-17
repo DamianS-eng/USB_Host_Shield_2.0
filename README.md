@@ -376,3 +376,41 @@ LeftHatX: 0 LeftHatY: 0 RightHatX: 0 RightHatY: 0
 > When compiling I am getting the following error: "fatal error: SPI.h: No such file or directory".
 
 * Please make sure to include the SPI library like so: ```#include <SPI.h>``` in your .ino file.
+
+> The program compiles, but the program halts with the text "OSC did not start." in the debugger.
+
+* A proper solution needs to be more simply documented, but there is a consistent string of events which cause this error. This may often occur when using a USB Host Shield not from the original designer, or when the shield is connecting to an alternative Arduino unit such as the Mega 2560. Solutions could be to either jump wires to realign SPI-dedicated pins, or modify a header file in the library prior to compiling.
+
+I think some of the USB host shield libraries have been updated since Rob made his initial publication. One website recommended looking at the library "UsbCore.h", which has a section at the start defining the pin configurations for different boards. Here, there are two references to the arduino mega:
+
+`/* shield pins. First parameter - SS pin, second parameter - INT pin */
+#ifdef BOARD_BLACK_WIDDOW
+typedef MAX3421e<P6, P3> MAX3421E; // Black Widow
+#elif defined(CORE_TEENSY) && (defined(AVR_AT90USB646) || defined(AVR_AT90USB1286))
+#if EXT_RAM
+typedef MAX3421e<P20, P7> MAX3421E; // Teensy++ 2.0 with XMEM2
+#else
+typedef MAX3421e<P9, P8> MAX3421E; // Teensy++ 1.0 and 2.0
+#endif
+#elif defined(BOARD_MEGA_ADK)
+typedef MAX3421e<P53, P54> MAX3421E; // Arduino Mega ADK
+#elif defined(ARDUINO_AVR_BALANDUINO)
+typedef MAX3421e<P20, P19> MAX3421E; // Balanduino
+#elif defined(ARDUINO_X86) && PLATFORM_ID == 0x06
+typedef MAX3421e<P3, P2> MAX3421E; // The Intel Galileo supports much faster read and write speed at pin 2 and 3
+#elif defined(ESP8266)
+typedef MAX3421e<P15, P5> MAX3421E; // ESP8266 boards
+#elif defined(ESP32)
+typedef MAX3421e<P5, P17> MAX3421E; // ESP32 boards
+#else
+typedef MAX3421e<P10, P9> MAX3421E; // Official Arduinos (UNO, Duemilanove, Mega, 2560, Leonardo, Due etc.), Intel Edison, Intel Galileo 2 or Teensy 2.0 and 3.x
+
+#endif`
+
+If you look at the code directly you'll see reference in the comments to "Arduino Mega ADK" as well as "Mega" and "2560" in the the official arduinos pin definitions.
+
+I don't know what the difference is between the first reference to "Arduino Mega ADK" and the Mega refered to in the "Official Arduinos" list, but to get around the issues, I simply changed "P10" to "P53" in the Official Arduinos section and now the USB host shield works with the Mega when I run the board_qc sketch. There is also no need to jumper the Mega pin 10 to pin 53, as is defined in Rob's paper
+
+I've so far tested it with 2 example sketches using a PS3 controller (PS3USB.h) and an Xbox wireless controller (XBOXRCEV.h) and both work fine. It works with the Openstage PCB now as well, although more testing is required before i'm entirely happy that everything is fine.
+
+Hope this helps.
