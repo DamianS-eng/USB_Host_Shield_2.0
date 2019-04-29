@@ -441,4 +441,10 @@ You may need to jumper:
 #define MAX_GPX 8
 #define MAX_RESET 7"
 
+"I have been unable to get this to work and after doing a lot of frustrating research and debugging I finally dragged out my multimeter to test pins 11, 12 and 13. It turns out they're not connected to the ICSP header block. The problem? The board I received DID NOT come with an ICSP header pins which means it's not actually able to communicate with the Arduino of course (you can clearly see them in the product images)
+
+As with everyone else, the pins that are there for the standard I/O rows are cheap and flimsy. Mine came pegged in foam so they weren't as bent as some of the other people seemed to indicate, but they were still bent. Two pins did not make it into the foam however and those were severely bent. That being said, because they are cheap and flimsy, bending them back into place wasn't really an issue, just a poor indication of quality, but the lack of ICSP header means I effectively got a brick.
+
+Obviously I could solder on some headers, but I don't have any, and the whole point of a shield is - presumably - plug and play."
+
 Hope this helps.
