@@ -447,4 +447,8 @@ As with everyone else, the pins that are there for the standard I/O rows are che
 
 Obviously I could solder on some headers, but I don't have any, and the whole point of a shield is - presumably - plug and play."
 
-Hope this helps.
+"In the usbcore.h file, modify: 
+typedef MAX3421e<P10, P9> MAX3421E; // Official Arduinos (UNO, Duemilanove, Mega, 2560, Leonardo, Due etc.), Intel Edison, Intel Galileo 2 or Teensy 2.0 and 3.0
+#endif
+
+This really needs to be cleaned up once a solution is found.
