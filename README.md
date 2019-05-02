@@ -451,4 +451,14 @@ Obviously I could solder on some headers, but I don't have any, and the whole po
 typedef MAX3421e<P10, P9> MAX3421E; // Official Arduinos (UNO, Duemilanove, Mega, 2560, Leonardo, Due etc.), Intel Edison, Intel Galileo 2 or Teensy 2.0 and 3.0
 #endif
 
+USH = USB HOST SHIELD 
+-> PIN SDA (USH) => PIN 20 (MEGA) 
+-> PIN SCL (USH) => PIN 21 (MEGA) 
+-> PIN 0 (USH) => PIN 7 (MEGA) 
+-> PIN 1 (USH) => PIN 6 (MEGA) 
+-> PIN 10 remains unchanged (same assignment) 
+-> PIN 11 (USH) => PIN 51 (MEGA) 
+-> PIN 12 (USH) => PIN 50 (MEGA) 
+-> PIN 13 (USH) => PIN 53 (MEGA) 
+
 This really needs to be cleaned up once a solution is found.
