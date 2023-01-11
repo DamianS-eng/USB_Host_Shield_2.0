@@ -1,11 +1,18 @@
 /* Copyright (C) 2011 Circuits At Home, LTD. All rights reserved.
 
-This software may be distributed and modified under the terms of the GNU
-General Public License version 2 (GPL2) as published by the Free Software
-Foundation and appearing in the file GPL2.TXT included in the packaging of
-this file. Please note that GPL2 Section 2[b] requires that all works based
-on this software must also be made publicly available under the terms of
-the GPL2 ("Copyleft").
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Contact information
 -------------------
@@ -41,7 +48,7 @@ public:
         }
 #elif defined(SPI_HAS_TRANSACTION)
         static void init() {
-                SPI.begin(); // The SPI library with transaction will take care of setting up the pins - settings is set in beginTransaction()
+                USB_SPI.begin(); // The SPI library with transaction will take care of setting up the pins - settings is set in beginTransaction()
                 SPI_SS::SetDirWrite();
                 SPI_SS::Set();
         }
@@ -54,17 +61,17 @@ public:
         static void init() {
                 SPI_SS::SetDirWrite();
                 SPI_SS::Set();
-                SPI.begin();
+                USB_SPI.begin();
 #if defined(__MIPSEL__)
-                SPI.setClockDivider(1);
+                USB_SPI.setClockDivider(1);
 #elif defined(__ARDUINO_X86__)
                 #ifdef SPI_CLOCK_1M // Hack used to check if setClockSpeed is available
-                    SPI.setClockSpeed(12000000); // The MAX3421E can handle up to 26MHz, but in practice this was the maximum that I could reliably use
+                    USB_SPI.setClockSpeed(12000000); // The MAX3421E can handle up to 26MHz, but in practice this was the maximum that I could reliably use
                 #else
-                    SPI.setClockDivider(SPI_CLOCK_DIV2); // This will set the SPI frequency to 8MHz - it could be higher, but it is not supported in the old API
+                    USB_SPI.setClockDivider(SPI_CLOCK_DIV2); // This will set the SPI frequency to 8MHz - it could be higher, but it is not supported in the old API
                 #endif
-#elif !defined(RBL_NRF51822)
-                SPI.setClockDivider(4); // Set speed to 84MHz/4=21MHz - the MAX3421E can handle up to 26MHz
+#elif !defined(RBL_NRF51822) && !defined(NRF52_SERIES)
+                USB_SPI.setClockDivider(4); // Set speed to 84MHz/4=21MHz - the MAX3421E can handle up to 26MHz
 #endif
         }
 #else
@@ -111,6 +118,10 @@ typedef SPi< P76, P75, P74, P10 > spi;
 typedef SPi< P16, P18, P17, P10 > spi;
 #elif defined(ESP8266)
 typedef SPi< P14, P13, P12, P15 > spi;
+#elif defined(ESP32)
+typedef SPi< P18, P23, P19, P5 > spi;
+#elif defined(ARDUINO_NRF52840_FEATHER)
+typedef SPi< P26, P25, P24, P5 > spi;
 #else
 #error "No SPI entry in usbhost.h"
 #endif
@@ -131,6 +142,7 @@ public:
         uint8_t regRd(uint8_t reg);
         uint8_t* bytesRd(uint8_t reg, uint8_t nbytes, uint8_t* data_p);
         uint8_t gpioRd();
+        uint8_t gpioRdOutput();
         uint16_t reset();
         int8_t Init();
         int8_t Init(int mseconds);
@@ -167,7 +179,7 @@ template< typename SPI_SS, typename INTR >
 void MAX3421e< SPI_SS, INTR >::regWr(uint8_t reg, uint8_t data) {
         XMEM_ACQUIRE_SPI();
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
+        USB_SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
 #endif
         SPI_SS::Clear();
 
@@ -176,19 +188,19 @@ void MAX3421e< SPI_SS, INTR >::regWr(uint8_t reg, uint8_t data) {
         c[0] = reg | 0x02;
         c[1] = data;
         spi4teensy3::send(c, 2);
-#elif defined(SPI_HAS_TRANSACTION) && !defined(ESP8266)
+#elif defined(SPI_HAS_TRANSACTION) && !defined(ESP8266) && !defined(ESP32)
         uint8_t c[2];
         c[0] = reg | 0x02;
         c[1] = data;
-        SPI.transfer(c, 2);
+        USB_SPI.transfer(c, 2);
 #elif defined(STM32F4)
         uint8_t c[2];
         c[0] = reg | 0x02;
         c[1] = data;
         HAL_SPI_Transmit(&SPI_Handle, c, 2, HAL_MAX_DELAY);
-#elif !defined(SPDR) // ESP8266
-        SPI.transfer(reg | 0x02);
-        SPI.transfer(data);
+#elif !defined(SPDR) // ESP8266, ESP32
+        USB_SPI.transfer(reg | 0x02);
+        USB_SPI.transfer(data);
 #else
         SPDR = (reg | 0x02);
         while(!(SPSR & (1 << SPIF)));
@@ -198,7 +210,7 @@ void MAX3421e< SPI_SS, INTR >::regWr(uint8_t reg, uint8_t data) {
 
         SPI_SS::Set();
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.endTransaction();
+        USB_SPI.endTransaction();
 #endif
         XMEM_RELEASE_SPI();
         return;
@@ -210,7 +222,7 @@ template< typename SPI_SS, typename INTR >
 uint8_t* MAX3421e< SPI_SS, INTR >::bytesWr(uint8_t reg, uint8_t nbytes, uint8_t* data_p) {
         XMEM_ACQUIRE_SPI();
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
+        USB_SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
 #endif
         SPI_SS::Clear();
 
@@ -218,23 +230,18 @@ uint8_t* MAX3421e< SPI_SS, INTR >::bytesWr(uint8_t reg, uint8_t nbytes, uint8_t*
         spi4teensy3::send(reg | 0x02);
         spi4teensy3::send(data_p, nbytes);
         data_p += nbytes;
-#elif defined(SPI_HAS_TRANSACTION) && !defined(ESP8266)
-        SPI.transfer(reg | 0x02);
-        SPI.transfer(data_p, nbytes);
-        data_p += nbytes;
-#elif defined(__ARDUINO_X86__)
-        SPI.transfer(reg | 0x02);
-        SPI.transferBuffer(data_p, NULL, nbytes);
-        data_p += nbytes;
 #elif defined(STM32F4)
         uint8_t data = reg | 0x02;
         HAL_SPI_Transmit(&SPI_Handle, &data, 1, HAL_MAX_DELAY);
         HAL_SPI_Transmit(&SPI_Handle, data_p, nbytes, HAL_MAX_DELAY);
         data_p += nbytes;
-#elif !defined(SPDR) // ESP8266
-        SPI.transfer(reg | 0x02);
+#elif !defined(__AVR__) || !defined(SPDR)
+#if defined(ESP8266) || defined(ESP32)
+        yield();
+#endif
+        USB_SPI.transfer(reg | 0x02);
         while(nbytes) {
-                SPI.transfer(*data_p);
+                USB_SPI.transfer(*data_p);
                 nbytes--;
                 data_p++; // advance data pointer
         }
@@ -251,7 +258,7 @@ uint8_t* MAX3421e< SPI_SS, INTR >::bytesWr(uint8_t reg, uint8_t nbytes, uint8_t*
 
         SPI_SS::Set();
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.endTransaction();
+        USB_SPI.endTransaction();
 #endif
         XMEM_RELEASE_SPI();
         return ( data_p);
@@ -273,7 +280,7 @@ template< typename SPI_SS, typename INTR >
 uint8_t MAX3421e< SPI_SS, INTR >::regRd(uint8_t reg) {
         XMEM_ACQUIRE_SPI();
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
+        USB_SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
 #endif
         SPI_SS::Clear();
 
@@ -287,8 +294,8 @@ uint8_t MAX3421e< SPI_SS, INTR >::regRd(uint8_t reg) {
         HAL_SPI_Receive(&SPI_Handle, &rv, 1, HAL_MAX_DELAY);
         SPI_SS::Set();
 #elif !defined(SPDR) || defined(SPI_HAS_TRANSACTION)
-        SPI.transfer(reg);
-        uint8_t rv = SPI.transfer(0); // Send empty byte
+        USB_SPI.transfer(reg);
+        uint8_t rv = USB_SPI.transfer(0); // Send empty byte
         SPI_SS::Set();
 #else
         SPDR = reg;
@@ -300,7 +307,7 @@ uint8_t MAX3421e< SPI_SS, INTR >::regRd(uint8_t reg) {
 #endif
 
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.endTransaction();
+        USB_SPI.endTransaction();
 #endif
         XMEM_RELEASE_SPI();
         return (rv);
@@ -312,7 +319,7 @@ template< typename SPI_SS, typename INTR >
 uint8_t* MAX3421e< SPI_SS, INTR >::bytesRd(uint8_t reg, uint8_t nbytes, uint8_t* data_p) {
         XMEM_ACQUIRE_SPI();
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
+        USB_SPI.beginTransaction(SPISettings(26000000, MSBFIRST, SPI_MODE0)); // The MAX3421E can handle up to 26MHz, use MSB First and SPI mode 0
 #endif
         SPI_SS::Clear();
 
@@ -320,24 +327,25 @@ uint8_t* MAX3421e< SPI_SS, INTR >::bytesRd(uint8_t reg, uint8_t nbytes, uint8_t*
         spi4teensy3::send(reg);
         spi4teensy3::receive(data_p, nbytes);
         data_p += nbytes;
-#elif defined(SPI_HAS_TRANSACTION) && !defined(ESP8266)
-        SPI.transfer(reg);
+#elif defined(SPI_HAS_TRANSACTION) && !defined(ESP8266) && !defined(ESP32)
+        USB_SPI.transfer(reg);
         memset(data_p, 0, nbytes); // Make sure we send out empty bytes
-        SPI.transfer(data_p, nbytes);
+        USB_SPI.transfer(data_p, nbytes);
         data_p += nbytes;
 #elif defined(__ARDUINO_X86__)
-        SPI.transfer(reg);
-        SPI.transferBuffer(NULL, data_p, nbytes);
+        USB_SPI.transfer(reg);
+        USB_SPI.transferBuffer(NULL, data_p, nbytes);
         data_p += nbytes;
 #elif defined(STM32F4)
         HAL_SPI_Transmit(&SPI_Handle, &reg, 1, HAL_MAX_DELAY);
         memset(data_p, 0, nbytes); // Make sure we send out empty bytes
         HAL_SPI_Receive(&SPI_Handle, data_p, nbytes, HAL_MAX_DELAY);
         data_p += nbytes;
-#elif !defined(SPDR) // ESP8266
-        SPI.transfer(reg);
+#elif !defined(SPDR) // ESP8266, ESP32
+        yield();
+        USB_SPI.transfer(reg);
         while(nbytes) {
-            *data_p++ = SPI.transfer(0);
+            *data_p++ = USB_SPI.transfer(0);
             nbytes--;
         }
 #else
@@ -363,13 +371,16 @@ uint8_t* MAX3421e< SPI_SS, INTR >::bytesRd(uint8_t reg, uint8_t nbytes, uint8_t*
 
         SPI_SS::Set();
 #if defined(SPI_HAS_TRANSACTION)
-        SPI.endTransaction();
+        USB_SPI.endTransaction();
 #endif
         XMEM_RELEASE_SPI();
         return ( data_p);
 }
 /* GPIO read. See gpioWr for explanation */
 
+/** @brief  Reads the current GPI input values
+*   @retval uint8_t Bitwise value of all 8 GPI inputs
+*/
 /* GPIN pins are in high nibbles of IOPINS1, IOPINS2    */
 template< typename SPI_SS, typename INTR >
 uint8_t MAX3421e< SPI_SS, INTR >::gpioRd() {
@@ -378,6 +389,19 @@ uint8_t MAX3421e< SPI_SS, INTR >::gpioRd() {
         gpin &= 0xf0; //clean lower nibble
         gpin |= (regRd(rIOPINS1) >> 4); //shift low bits and OR with upper from previous operation.
         return ( gpin);
+}
+
+/** @brief  Reads the current GPI output values
+*   @retval uint8_t Bitwise value of all 8 GPI outputs
+*/
+/* GPOUT pins are in low nibbles of IOPINS1, IOPINS2    */
+template< typename SPI_SS, typename INTR >
+uint8_t MAX3421e< SPI_SS, INTR >::gpioRdOutput() {
+        uint8_t gpout = 0;
+        gpout = regRd(rIOPINS1); //pins 0-3
+        gpout &= 0x0f; //clean upper nibble
+        gpout |= (regRd(rIOPINS2) << 4); //shift high bits and OR with lower from previous operation.
+        return ( gpout);
 }
 
 /* reset MAX3421E. Returns number of cycles it took for PLL to stabilize after reset

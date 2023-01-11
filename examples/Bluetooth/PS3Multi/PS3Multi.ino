@@ -11,8 +11,8 @@
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
-#include <SPI.h>
 #endif
+#include <SPI.h>
 
 USB Usb;
 //USBHub Hub1(&Usb); // Some dongles have a hub inside
@@ -72,7 +72,7 @@ void loop() {
       }
       else {
         if (PS3[i]->getButtonClick(TRIANGLE))
-          Serial.print(F("\r\nTraingle"));
+          Serial.print(F("\r\nTriangle"));
         if (PS3[i]->getButtonClick(CIRCLE))
           Serial.print(F("\r\nCircle"));
         if (PS3[i]->getButtonClick(CROSS))

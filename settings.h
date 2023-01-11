@@ -1,11 +1,18 @@
 /* Copyright (C) 2011 Circuits At Home, LTD. All rights reserved.
 
-This software may be distributed and modified under the terms of the GNU
-General Public License version 2 (GPL2) as published by the Free Software
-Foundation and appearing in the file GPL2.TXT included in the packaging of
-this file. Please note that GPL2 Section 2[b] requires that all works based
-on this software must also be made publicly available under the terms of
-the GPL2 ("Copyleft").
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Contact information
 -------------------
@@ -18,6 +25,14 @@ e-mail   :  support@circuitsathome.com
 #ifndef USB_HOST_SHIELD_SETTINGS_H
 #define USB_HOST_SHIELD_SETTINGS_H
 #include "macros.h"
+
+////////////////////////////////////////////////////////////////////////////////
+// SPI Configuration
+////////////////////////////////////////////////////////////////////////////////
+#ifndef USB_SPI
+#define USB_SPI SPI
+//#define USB_SPI SPI1
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // DEBUGGING
@@ -65,16 +80,14 @@ e-mail   :  support@circuitsathome.com
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
-// Set to 1 to use the faster spi4teensy3 driver.
+// Set to 1 to use the faster spi4teensy3 driver on Teensy 3.x
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef USE_SPI4TEENSY3
+#if defined(CORE_TEENSY) && (defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__))
 #define USE_SPI4TEENSY3 1
-#endif
-
-// Disabled on the Teensy LC, Teensy 3.5, and Teensy 3.6 as it is incompatible for now
-#if defined(__MKL26Z64__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
-#undef USE_SPI4TEENSY3
+#else
 #define USE_SPI4TEENSY3 0
+#endif
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +142,7 @@ e-mail   :  support@circuitsathome.com
 #define EXT_RAM 0
 #endif
 
-#if defined(CORE_TEENSY) && (defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__MKL26Z64__))
+#if defined(CORE_TEENSY) && defined(KINETISK)
 #define USING_SPI4TEENSY3 USE_SPI4TEENSY3
 #else
 #define USING_SPI4TEENSY3 0
@@ -144,13 +157,23 @@ e-mail   :  support@circuitsathome.com
 #define SPI SPI_Master
 #define MFK_CASTUINT8T (uint8_t) // RBLs return type for sizeof needs casting to uint8_t
 #endif
+#ifdef NRF52_SERIES
+#include <SPI.h> 
+#include <nrf_gpio.h>
+#define MFK_CASTUINT8T (uint8_t) // NRF return type for sizeof needs casting to uint8_t
+#endif
 #if defined(__PIC32MX__) || defined(__PIC32MZ__)
 #include <../../../../hardware/pic32/libraries/SPI/SPI.h> // Hack to use the SPI library
+#endif
+
+#if defined(ESP8266) || defined(ESP32)
+#define MFK_CASTUINT8T (uint8_t) // ESP return type for sizeof needs casting to uint8_t
 #endif
 
 #ifdef STM32F4
 #include "stm32f4xx_hal.h"
 extern SPI_HandleTypeDef SPI_Handle; // Needed to be declared in your main.cpp
+#define MFK_CASTUINT8T (uint8_t)
 #endif
 
 // Fix defines on Arduino Due

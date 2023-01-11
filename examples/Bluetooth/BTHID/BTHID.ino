@@ -12,8 +12,8 @@
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
-#include <SPI.h>
 #endif
+#include <SPI.h>
 
 USB Usb;
 //USBHub Hub1(&Usb); // Some dongles have a hub inside
@@ -25,7 +25,7 @@ BTD Btd(&Usb); // You have to create the Bluetooth Dongle instance like so
 BTHID bthid(&Btd, PAIR, "0000");
 
 // After that you can simply create the instance like so and then press any button on the device
-//BTHID hid(&Btd);
+//BTHID bthid(&Btd);
 
 KbdRptParser keyboardPrs;
 MouseRptParser mousePrs;

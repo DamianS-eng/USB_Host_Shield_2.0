@@ -990,7 +990,7 @@ const char * const ReportDescParserBase::medInstrTitles4[] PROGMEM = {
         pstrUsageSoftControlAdjust
 };
 
-void ReportDescParserBase::Parse(const uint16_t len, const uint8_t *pbuf, const uint16_t &offset) {
+void ReportDescParserBase::Parse(const uint16_t len, const uint8_t *pbuf, const uint16_t &offset __attribute__((unused))) {
         uint16_t cntdn = (uint16_t)len;
         uint8_t *p = (uint8_t*)pbuf;
 
@@ -1113,16 +1113,19 @@ uint8_t ReportDescParserBase::ParseItem(uint8_t **pp, uint16_t *pcntdn) {
 
                         if(!pcntdn)
                                 return enErrorIncomplete;
+                        // fall through
                 case 1:
                         //USBTRACE2("\r\niSz:",itemSize);
 
                         theBuffer.valueSize = itemSize;
                         valParser.Initialize(&theBuffer);
                         itemParseState = 2;
+                        // fall through
                 case 2:
                         if(!valParser.Parse(pp, pcntdn))
                                 return enErrorIncomplete;
                         itemParseState = 3;
+                        // fall through
                 case 3:
                 {
                         uint8_t data = *((uint8_t*)varBuffer);
@@ -1448,14 +1451,17 @@ uint8_t ReportDescParser2::ParseItem(uint8_t **pp, uint16_t *pcntdn) {
 
                         if(!pcntdn)
                                 return enErrorIncomplete;
+                        // fall through
                 case 1:
                         theBuffer.valueSize = itemSize;
                         valParser.Initialize(&theBuffer);
                         itemParseState = 2;
+                        // fall through
                 case 2:
                         if(!valParser.Parse(pp, pcntdn))
                                 return enErrorIncomplete;
                         itemParseState = 3;
+                        // fall through
                 case 3:
                 {
                         uint8_t data = *((uint8_t*)varBuffer);
@@ -1578,7 +1584,7 @@ void ReportDescParser2::OnInputItem(uint8_t itm) {
         E_Notify(PSTR("\r\n"), 0x80);
 }
 
-void UniversalReportParser::Parse(USBHID *hid, bool is_rpt_id, uint8_t len, uint8_t *buf) {
+void UniversalReportParser::Parse(USBHID *hid, bool is_rpt_id __attribute__((unused)), uint8_t len, uint8_t *buf) {
         ReportDescParser2 prs(len, buf);
 
         uint8_t ret = hid->GetReportDescr(0, &prs);

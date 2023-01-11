@@ -9,8 +9,8 @@
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
-#include <SPI.h>
 #endif
+#include <SPI.h>
 
 USB Usb;
 /* You can create the instance of the class in two ways */
@@ -60,7 +60,7 @@ void loop() {
       Serial.print(F("\r\nPS"));
 
     if (PS3.getButtonClick(TRIANGLE))
-      Serial.print(F("\r\nTraingle"));
+      Serial.print(F("\r\nTriangle"));
     if (PS3.getButtonClick(CIRCLE))
       Serial.print(F("\r\nCircle"));
     if (PS3.getButtonClick(CROSS))

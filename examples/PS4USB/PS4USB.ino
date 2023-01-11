@@ -9,8 +9,8 @@
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
-#include <SPI.h>
 #endif
+#include <SPI.h>
 
 USB Usb;
 PS4USB PS4(&Usb);
@@ -59,7 +59,7 @@ void loop() {
     if (PS4.getButtonClick(PS))
       Serial.print(F("\r\nPS"));
     if (PS4.getButtonClick(TRIANGLE)) {
-      Serial.print(F("\r\nTraingle"));
+      Serial.print(F("\r\nTriangle"));
       PS4.setRumbleOn(RumbleLow);
     }
     if (PS4.getButtonClick(CIRCLE)) {

@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  * Legacy Serial MIDI and USB Host bidirectional converter
- * Copyright (C) 2013-2017 Yuuichi Akagawa
+ * Copyright (C) 2013-2021 Yuuichi Akagawa
  *
  * for use with Arduino MIDI library
  * https://github.com/FortySevenEffects/arduino_midi_library/
@@ -16,12 +16,6 @@
 #include <usbh_midi.h>
 #include <usbhub.h>
 
-// Satisfy the IDE, which needs to see the include statment in the ino too.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#include <SPI.h>
-#endif
-
 //Arduino MIDI library v4.2 compatibility
 #ifdef MIDI_CREATE_DEFAULT_INSTANCE
 MIDI_CREATE_DEFAULT_INSTANCE();
@@ -31,6 +25,10 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 #else
 #define _MIDI_SERIAL_PORT Serial
 #endif
+
+// Set to 1 if you want to wait for the Serial MIDI transmission to complete.
+// For more information, see https://github.com/felis/USB_Host_Shield_2.0/issues/570
+#define ENABLE_MIDI_SERIAL_FLUSH 0
 
 //////////////////////////
 // MIDI Pin assign
@@ -43,7 +41,6 @@ USB Usb;
 USBH_MIDI Midi(&Usb);
 
 void MIDI_poll();
-void doDelay(uint32_t t1, uint32_t t2, uint32_t delayTime);
 
 //If you want handle System Exclusive message, enable this #define otherwise comment out it.
 #define USBH_MIDI_SYSEX_ENABLE
@@ -58,6 +55,7 @@ void handle_sysex( byte* sysexmsg, unsigned sizeofsysex) {
 void setup()
 {
   MIDI.begin(MIDI_CHANNEL_OMNI);
+  MIDI.turnThruOff();
 #ifdef USBH_MIDI_SYSEX_ENABLE
   MIDI.setHandleSystemExclusive(handle_sysex);
 #endif
@@ -72,9 +70,7 @@ void loop()
   uint8_t msg[4];
 
   Usb.Task();
-  uint32_t t1 = (uint32_t)micros();
-  if ( Usb.getUsbTaskState() == USB_STATE_RUNNING )
-  {
+  if ( Midi ) {
     MIDI_poll();
     if (MIDI.read()) {
       msg[0] = MIDI.getType();
@@ -85,6 +81,11 @@ void loop()
           //SysEx is handled by event.
           break;
         default :
+          // If this is a channel messages, set the channel number.
+          if( msg[0] < 0xf0 ){
+            // The getchannel() returns 1-16, but the MIDI status byte starts at 0.
+            msg[0] |= MIDI.getChannel() - 1; 
+          }
           msg[1] = MIDI.getData1();
           msg[2] = MIDI.getData2();
           Midi.SendData(msg, 0);
@@ -92,8 +93,6 @@ void loop()
       }
     }
   }
-  //delay(1ms)
-  doDelay(t1, (uint32_t)micros(), 1000);
 }
 
 // Poll USB MIDI Controler and send to serial MIDI
@@ -129,6 +128,9 @@ void MIDI_poll()
       _MIDI_SERIAL_PORT.write(outbuf, rc);
       p += 4;
     }
+#if ENABLE_MIDI_SERIAL_FLUSH
+      _MIDI_SERIAL_PORT.flush();
+#endif
     readPtr += 4;
   }
 #else
@@ -137,23 +139,10 @@ void MIDI_poll()
     if ( (size = Midi.RecvData(outBuf)) > 0 ) {
       //MIDI Output
       _MIDI_SERIAL_PORT.write(outBuf, size);
+#if ENABLE_MIDI_SERIAL_FLUSH
+      _MIDI_SERIAL_PORT.flush();
+#endif
     }
   } while (size > 0);
 #endif
-}
-
-// Delay time (max 16383 us)
-void doDelay(uint32_t t1, uint32_t t2, uint32_t delayTime)
-{
-  uint32_t t3;
-
-  if ( t1 > t2 ) {
-    t3 = (0xFFFFFFFF - t1 + t2);
-  } else {
-    t3 = t2 - t1;
-  }
-
-  if ( t3 < delayTime ) {
-    delayMicroseconds(delayTime - t3);
-  }
 }

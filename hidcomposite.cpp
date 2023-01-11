@@ -306,6 +306,13 @@ void HIDComposite::EndpointXtract(uint8_t conf, uint8_t iface, uint8_t alt, uint
 
         // Fill in interface structure in case of new interface
         if(!piface) {
+                if(bNumIface >= maxHidInterfaces) {
+                        // don't overflow hidInterfaces[]
+                        Notify(PSTR("\r\n EndpointXtract(): Not adding HID interface because we already have "), 0x80);
+                        Notify(bNumIface, 0x80);
+                        Notify(PSTR(" interfaces and can't hold more. "), 0x80);
+                        return;
+                }
                 piface = hidInterfaces + bNumIface;
                 piface->bmInterface = iface;
                 piface->bmAltSet = alt;
@@ -313,29 +320,34 @@ void HIDComposite::EndpointXtract(uint8_t conf, uint8_t iface, uint8_t alt, uint
                 bNumIface++;
         }
 
-        if((pep->bmAttributes & 0x03) == 3 && (pep->bEndpointAddress & 0x80) == 0x80)
-            index = epInterruptInIndex;
-        else
-            index = epInterruptOutIndex;
+        if((pep->bmAttributes & bmUSB_TRANSFER_TYPE) == USB_TRANSFER_TYPE_INTERRUPT)
+                index = (pep->bEndpointAddress & 0x80) == 0x80 ? epInterruptInIndex : epInterruptOutIndex;
 
         if(!SelectInterface(iface, proto))
-            index = 0;
+                index = 0;
 
         if(index) {
-            // Fill in the endpoint info structure
-            epInfo[bNumEP].epAddr = (pep->bEndpointAddress & 0x0F);
-            epInfo[bNumEP].maxPktSize = (uint8_t)pep->wMaxPacketSize;
-            epInfo[bNumEP].bmSndToggle = 0;
-            epInfo[bNumEP].bmRcvToggle = 0;
-            epInfo[bNumEP].bmNakPower = USB_NAK_NOWAIT;
+                if(bNumEP >= totalEndpoints) {
+                        // don't overflow epInfo[] either
+                        Notify(PSTR("\r\n EndpointXtract(): Not adding endpoint info because we already have "), 0x80);
+                        Notify(bNumEP, 0x80);
+                        Notify(PSTR(" endpoints and can't hold more. "), 0x80);
+                        return;
+                }
+                // Fill in the endpoint info structure
+                epInfo[bNumEP].epAddr = (pep->bEndpointAddress & 0x0F);
+                epInfo[bNumEP].maxPktSize = (uint8_t)pep->wMaxPacketSize;
+                epInfo[bNumEP].bmSndToggle = 0;
+                epInfo[bNumEP].bmRcvToggle = 0;
+                epInfo[bNumEP].bmNakPower = USB_NAK_NOWAIT;
 
-            // Fill in the endpoint index list
-            piface->epIndex[index] = bNumEP; //(pep->bEndpointAddress & 0x0F);
+                // Fill in the endpoint index list
+                piface->epIndex[index] = bNumEP; //(pep->bEndpointAddress & 0x0F);
 
-            if(pollInterval < pep->bInterval) // Set the polling interval as the largest polling interval obtained from endpoints
-                    pollInterval = pep->bInterval;
+                if(pollInterval < pep->bInterval) // Set the polling interval as the largest polling interval obtained from endpoints
+                        pollInterval = pep->bInterval;
 
-            bNumEP++;
+                bNumEP++;
         }
 }
 

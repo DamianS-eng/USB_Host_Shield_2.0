@@ -149,14 +149,14 @@ protected:
         static const uint8_t epInterruptInIndex = 1; // InterruptIN  endpoint index
         static const uint8_t epInterruptOutIndex = 2; // InterruptOUT endpoint index
 
-        static const uint8_t maxHidInterfaces = 3;
+        static const uint8_t maxHidInterfaces = 5;
         static const uint8_t maxEpPerInterface = 2;
-        static const uint8_t totalEndpoints = (maxHidInterfaces * maxEpPerInterface + 1);
+        static const uint8_t totalEndpoints = (maxHidInterfaces * maxEpPerInterface + 1); // We need to make room for the control endpoint
 
         void PrintEndpointDescriptor(const USB_ENDPOINT_DESCRIPTOR* ep_ptr);
         void PrintHidDescriptor(const USB_HID_DESCRIPTOR *pDesc);
 
-        virtual HIDReportParser* GetReportParser(uint8_t id) {
+        virtual HIDReportParser* GetReportParser(uint8_t id __attribute__((unused))) {
                 return NULL;
         };
 
@@ -169,7 +169,7 @@ public:
                 return pUsb;
         };
 
-        virtual bool SetReportParser(uint8_t id, HIDReportParser *prs) {
+        virtual bool SetReportParser(uint8_t id __attribute__((unused)), HIDReportParser *prs __attribute__((unused))) {
                 return false;
         };
 

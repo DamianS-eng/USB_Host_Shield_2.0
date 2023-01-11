@@ -1,11 +1,18 @@
 /* Copyright (C) 2011 Circuits At Home, LTD. All rights reserved.
 
-This software may be distributed and modified under the terms of the GNU
-General Public License version 2 (GPL2) as published by the Free Software
-Foundation and appearing in the file GPL2.TXT included in the packaging of
-this file. Please note that GPL2 Section 2[b] requires that all works based
-on this software must also be made publicly available under the terms of
-the GPL2 ("Copyleft").
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Contact information
 -------------------
@@ -720,6 +727,126 @@ public:
 #define P31 Pa7 /* 31 - PA7 */
 // Balanduino
 
+#elif defined(ARDUINO_AVR_UNO_PRO) && defined(__AVR_ATmega1284P__)
+// UNO*Pro pin numbers
+// Homepage: http://www.hobbytronics.co.uk/arduino-uno-pro
+// Pin Reference: http://www.hobbytronics.co.uk/download/uno_pro/pins_arduino.h
+#define P0  Pd0
+#define P1  Pd1
+#define P2  Pb2
+#define P3  Pb3
+#define P4  Pb0
+#define P5  Pb1
+#define P6  Pd2
+#define P7  Pd3
+#define P8  Pd5
+#define P9  Pd6
+#define P10 Pb4
+#define P11 Pb5
+#define P12 Pb6
+#define P13 Pb7
+#define P14 Pa7
+#define P15 Pa6
+#define P16 Pa5
+#define P17 Pa4
+#define P18 Pa3
+#define P19 Pa2
+#define P20 Pa1
+#define P21 Pa0
+#define P22 Pc0
+#define P23 Pc1
+#define P24 Pc2
+#define P25 Pc3
+#define P26 Pc4
+#define P27 Pc5
+#define P28 Pc6
+#define P29 Pc7
+#define P30 Pd4
+#define P31 Pd7
+// UNO*Pro
+
+#elif defined(MIGHTYCORE)
+// https://github.com/MCUdude/MightyCore
+#if defined(BOBUINO_PINOUT)
+  #define P0  Pd0
+  #define P1  Pd1
+  #define P2  Pd2
+  #define P3  Pd3
+  #define P4  Pb0
+  #define P5  Pb1
+  #define P6  Pb2
+  #define P7  Pb3
+  #define P8  Pd5
+  #define P9  Pd6
+  #define P10 Pb4
+  #define P11 Pb5
+  #define P12 Pb6
+  #define P13 Pb7
+  #define P14 Pa7
+  #define P15 Pa6
+  #define P16 Pa5
+  #define P17 Pa4
+  #define P18 Pa3
+  #define P19 Pa2
+  #define P20 Pa1
+  #define P21 Pa0
+  #define P22 Pc0
+  #define P23 Pc1
+  #define P24 Pc2
+  #define P25 Pc3
+  #define P26 Pc4
+  #define P27 Pc5
+  #define P28 Pc6
+  #define P29 Pc7
+  #define P30 Pd4
+  #define P31 Pd7
+#else
+  #define P0  Pb0
+  #define P1  Pb1
+  #define P2  Pb2
+  #define P3  Pb3
+  #define P4  Pb4
+  #define P5  Pb5
+  #define P6  Pb6
+  #define P7  Pb7
+  #define P8  Pd0
+  #define P9  Pd1
+  #define P10 Pd2
+  #define P11 Pd3
+  #define P12 Pd4
+  #define P13 Pd5
+  #define P14 Pd6
+  #define P15 Pd7
+  #define P16 Pc0
+  #define P17 Pc1
+  #define P18 Pc2
+  #define P19 Pc3
+  #define P20 Pc4
+  #define P21 Pc5
+  #define P22 Pc6
+  #define P23 Pc7
+  #if defined(SANGUINO_PINOUT)
+    #define P24 Pa7
+    #define P25 Pa6
+    #define P26 Pa5
+    #define P27 Pa4
+    #define P28 Pa3
+    #define P29 Pa2
+    #define P30 Pa1
+    #define P31 Pa0
+  #else
+    #define P24 Pa0
+    #define P25 Pa1
+    #define P26 Pa2
+    #define P27 Pa3
+    #define P28 Pa4
+    #define P29 Pa5
+    #define P30 Pa6
+    #define P31 Pa7
+  #endif
+#endif
+// MightyCore
+
 #elif defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__)
 // Sanguino pin numbers
 // Homepage: http://sanguino.cc/hardware
@@ -769,6 +896,7 @@ public:
 #define pgm_read_pointer(p) pgm_read_dword(p)
 
 #if defined(CORE_TEENSY) && (defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__))
+// Teensy 3.x
 
 #include "core_pins.h"
 #include "avr_emulation.h"
@@ -868,6 +996,7 @@ MAKE_PIN(P63, CORE_PIN63_PORTREG, CORE_PIN63_BIT, CORE_PIN63_CONFIG);
 #undef MAKE_PIN
 
 #elif defined(CORE_TEENSY) && (defined(__MKL26Z64__))
+// Teensy-LC
 
 // we could get lower level by making these macros work properly.
 // for now just use the semi optimised version, it costs a lookup in the pin pgm table per op
@@ -928,6 +1057,91 @@ MAKE_PIN(P23, CORE_PIN23_PORTREG, 23, CORE_PIN23_CONFIG);
 MAKE_PIN(P24, CORE_PIN24_PORTREG, 24, CORE_PIN24_CONFIG);
 MAKE_PIN(P25, CORE_PIN25_PORTREG, 25, CORE_PIN25_CONFIG);
 MAKE_PIN(P26, CORE_PIN26_PORTREG, 26, CORE_PIN26_CONFIG);
+
+#undef MAKE_PIN
+
+#elif defined(__IMXRT1062__) && (defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41))
+// Teensy 4.x
+
+#include "core_pins.h"
+
+#define MAKE_PIN(className, pin) \
+class className { \
+public: \
+  static void Set() { \
+    digitalWriteFast(pin, HIGH);\
+  } \
+  static void Clear() { \
+    digitalWriteFast(pin, LOW); \
+  } \
+  static void SetDirRead() { \
+    pinMode(pin, INPUT); \
+  } \
+  static void SetDirWrite() { \
+    pinMode(pin, OUTPUT); \
+  } \
+  static uint8_t IsSet() { \
+    return digitalReadFast(pin); \
+  } \
+};
+
+MAKE_PIN(P0, 0);
+MAKE_PIN(P1, 1);
+MAKE_PIN(P2, 2);
+MAKE_PIN(P3, 3);
+MAKE_PIN(P4, 4);
+MAKE_PIN(P5, 5);
+MAKE_PIN(P6, 6);
+MAKE_PIN(P7, 7);
+MAKE_PIN(P8, 8);
+MAKE_PIN(P9, 9);
+MAKE_PIN(P10, 10);
+MAKE_PIN(P11, 11);
+MAKE_PIN(P12, 12);
+MAKE_PIN(P13, 13);
+MAKE_PIN(P14, 14);
+MAKE_PIN(P15, 15);
+MAKE_PIN(P16, 16);
+MAKE_PIN(P17, 17);
+MAKE_PIN(P18, 18);
+MAKE_PIN(P19, 19);
+MAKE_PIN(P20, 20);
+MAKE_PIN(P21, 21);
+MAKE_PIN(P22, 22);
+MAKE_PIN(P23, 23);
+MAKE_PIN(P24, 24);
+MAKE_PIN(P25, 25);
+MAKE_PIN(P26, 26);
+MAKE_PIN(P27, 27);
+MAKE_PIN(P28, 28);
+MAKE_PIN(P29, 29);
+MAKE_PIN(P30, 30);
+MAKE_PIN(P31, 31);
+MAKE_PIN(P32, 35);
+MAKE_PIN(P33, 33);
+MAKE_PIN(P34, 34);
+MAKE_PIN(P35, 35);
+MAKE_PIN(P36, 36);
+MAKE_PIN(P37, 37);
+MAKE_PIN(P38, 38);
+MAKE_PIN(P39, 39);
+#ifdef ARDUINO_TEENSY41
+MAKE_PIN(P40, 40);
+MAKE_PIN(P41, 41);
+MAKE_PIN(P42, 42);
+MAKE_PIN(P43, 43);
+MAKE_PIN(P44, 44);
+MAKE_PIN(P45, 45);
+MAKE_PIN(P46, 46);
+MAKE_PIN(P47, 47);
+MAKE_PIN(P48, 48);
+MAKE_PIN(P49, 49);
+MAKE_PIN(P50, 50);
+MAKE_PIN(P51, 51);
+MAKE_PIN(P52, 52);
+MAKE_PIN(P53, 53);
+MAKE_PIN(P54, 54);
+#endif
 
 #undef MAKE_PIN
 
@@ -1162,6 +1376,68 @@ MAKE_PIN(P19, GPIOC, GPIO_PIN_0); // A5
 
 #undef MAKE_PIN
 
+
+#elif defined(ARDUINO_NRF52840_FEATHER)
+
+#define MAKE_PIN(className, pin) \
+class className { \
+public: \
+    static void Set() { \
+        nrf_gpio_pin_set(pin); \
+    } \
+    static void Clear() { \
+        nrf_gpio_pin_clear(pin); \
+    } \
+    static void SetDirRead() { \
+        nrf_gpio_cfg_input(pin, NRF_GPIO_PIN_NOPULL); \
+    } \
+    static void SetDirWrite() { \
+        nrf_gpio_cfg_output(pin); \
+    } \
+    static uint8_t IsSet() { \
+        return (uint8_t)nrf_gpio_pin_read(pin); \
+    } \
+};
+
+// Based on variants/feather_nrf52840_express/variant.cpp
+// g_ADigitalPinMap could be used directly, but it would be slower
+MAKE_PIN(P0, (25));
+MAKE_PIN(P1, (24));
+MAKE_PIN(P2, (10));
+MAKE_PIN(P3, (47));
+MAKE_PIN(P4, (42));
+MAKE_PIN(P5, (40));
+MAKE_PIN(P6, (7));
+MAKE_PIN(P7, (34));
+MAKE_PIN(P8, (16));
+MAKE_PIN(P9, (26));
+MAKE_PIN(P10, (27));
+MAKE_PIN(P11, (6));
+MAKE_PIN(P12, (8));
+MAKE_PIN(P13, (41));
+MAKE_PIN(P14, (4));
+MAKE_PIN(P15, (5));
+MAKE_PIN(P17, (30));
+MAKE_PIN(P18, (28));
+MAKE_PIN(P16, (2));
+MAKE_PIN(P19, (3));
+MAKE_PIN(P20, (29));
+MAKE_PIN(P21, (31));
+MAKE_PIN(P22, (12));
+MAKE_PIN(P23, (11));
+MAKE_PIN(P24, (15));
+MAKE_PIN(P25, (13));
+MAKE_PIN(P26, (14));
+MAKE_PIN(P27, (19));
+MAKE_PIN(P28, (20));
+MAKE_PIN(P29, (17));
+MAKE_PIN(P30, (22));
+MAKE_PIN(P31, (23));
+MAKE_PIN(P32, (21));
+MAKE_PIN(P33, (9));
+
+#undef MAKE_PIN
+
 #else
 #error "Please define board in avrpins.h"
 
@@ -1326,9 +1602,7 @@ MAKE_PIN(P13, 13); //
 
 #undef MAKE_PIN
 
-#elif defined(ESP8266)
-
-#define pgm_read_pointer(p) pgm_read_ptr(p)
+#elif defined(ESP8266) || defined(ESP32)
 
 #define MAKE_PIN(className, pin) \
 class className { \
@@ -1350,6 +1624,28 @@ public: \
   } \
 };
 
+#if defined(ESP8266)
+
+// Workaround the following issue: https://github.com/esp8266/Arduino/pull/5735
+#undef pgm_read_ptr_aligned
+#ifdef __cplusplus
+#define pgm_read_ptr_aligned(addr) (*reinterpret_cast<const void* const*>(addr))
+#else
+#define pgm_read_ptr_aligned(addr) (*(const void* const*)(addr))
+#endif
+
+#undef pgm_read_ptr
+#if PGM_READ_UNALIGNED
+#define pgm_read_ptr(p) pgm_read_ptr_unaligned(p)
+#else
+#define pgm_read_ptr(p) pgm_read_ptr_aligned(p)
+#endif
+
+#ifdef pgm_read_pointer
+#undef pgm_read_pointer
+#endif
+#define pgm_read_pointer(p) pgm_read_ptr(p)
+
 // Pinout for ESP-12 module
 // 0 .. 16 - Digital pins
 // GPIO 6 to 11 and 16 are not usable in this library.
@@ -1365,7 +1661,62 @@ MAKE_PIN(P13, 13); // MOSI
 MAKE_PIN(P14, 14); // SCK
 MAKE_PIN(P15, 15); // SS
 
+#elif defined(ESP32)
+
+// Workaround strict-aliasing warnings
+#ifdef pgm_read_word
+#undef pgm_read_word
+#endif
+#ifdef pgm_read_dword
+#undef pgm_read_dword
+#endif
+#ifdef  pgm_read_float
+#undef pgm_read_float
+#endif
+#ifdef  pgm_read_ptr
+#undef pgm_read_ptr
+#endif
+
+#define pgm_read_word(addr) ({ \
+  typeof(addr) _addr = (addr); \
+  *(const unsigned short *)(_addr); \
+})
+#define pgm_read_dword(addr) ({ \
+  typeof(addr) _addr = (addr); \
+  *(const unsigned long *)(_addr); \
+})
+#define pgm_read_float(addr) ({ \
+  typeof(addr) _addr = (addr); \
+  *(const float *)(_addr); \
+})
+#define pgm_read_ptr(addr) ({ \
+  typeof(addr) _addr = (addr); \
+  *(void * const *)(_addr); \
+})
+
+// Pinout for ESP32 dev module
+
+MAKE_PIN(P0, 0);
+MAKE_PIN(P1, 1); // TX0
+MAKE_PIN(P10, 10); // TX1
+MAKE_PIN(P3, 3); // RX0
+MAKE_PIN(P21, 21); // SDA
+MAKE_PIN(P22, 22); // SCL
+MAKE_PIN(P19, 19); // MISO
+MAKE_PIN(P23, 23); // MOSI
+MAKE_PIN(P18, 18); // SCK
+MAKE_PIN(P5, 5); // SS
+MAKE_PIN(P17, 17); // INT
+
+#endif
+
 #undef MAKE_PIN
+
+// pgm_read_ptr is not defined in the ESP32, so we have to undef the diffinition from version_helper.h
+#ifdef pgm_read_pointer
+#undef pgm_read_pointer
+#endif
+#define pgm_read_pointer(p) pgm_read_ptr(p)
 
 #else
 #error "Please define board in avrpins.h"

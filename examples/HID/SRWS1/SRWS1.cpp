@@ -29,7 +29,7 @@ void SRWS1::ParseHIDData(USBHID *hid, bool is_rpt_id, uint8_t len, uint8_t *buf)
                 }
         }
 #endif
-        memcpy(&srws1Data, buf, min(len, sizeof(srws1Data)));
+        memcpy(&srws1Data, buf, min(len, MFK_CASTUINT8T sizeof(srws1Data)));
 
         static SRWS1DataButtons oldButtonState;
         if (srws1Data.btn.val != oldButtonState.val) { // Check if anything has changed
@@ -44,6 +44,5 @@ void SRWS1::setLeds(uint16_t leds) {
         buf[0] = 0x40; // Report ID
         buf[1] = leds & 0xFF;
         buf[2] = (leds >> 8) & 0x7F;
-        pUsb->outTransfer(bAddress, epInfo[ hidInterfaces[0].epIndex[epInterruptOutIndex] ].epAddr, sizeof(buf), buf);
+        pUsb->outTransfer(bAddress, epInfo[epInterruptOutIndex].epAddr, sizeof(buf), buf);
 }
-
