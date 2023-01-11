@@ -156,6 +156,9 @@ void loop() {
 			xreading = 0;
 			yreading = 0;
 		} else {
+      // Arduino Map function to covert one range to another
+      // https://www.arduino.cc/reference/en/language/functions/math/map/
+      // map(value, fromLow, fromHigh, toLow, toHigh)			
 			xreading = ((Wii.getIRx1() + Wii.getIRx2()) / 2) * xBound / xIRMax;
 			yreading = ((Wii.getIRy1() + Wii.getIRy2()) / 2 ) * yBound / yIRMax;
 		}
